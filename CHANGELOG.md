@@ -1,3 +1,120 @@
+## 1.1.5
+
+* [Puppeteer] Rerun steps failed due to "Cannot find context with specified id" Error.
+* Added syntax to retry a single step:
+
+```js
+// retry action once on failure
+I.retry().see('Hello');
+
+// retry action 3 times on failure
+I.retry(3).see('Hello');
+
+// retry action 3 times waiting for 0.1 second before next try
+I.retry({ retries: 3, minTimeout: 100 }).see('Hello');
+
+// retry action 3 times waiting no more than 3 seconds for last retry
+I.retry({ retries: 3, maxTimeout: 3000 }).see('Hello');
+
+// retry 2 times if error with message 'Node not visible' happens
+I.retry({
+  retries: 2,
+  when: err => err.message === 'Node not visible'
+}).seeElement('#user');
+```
+
+* `Scenario().injectDependencies` added to dynamically add objects into DI container by @Apshenkin. See [Dependency Injection section in PageObjects](https://codecept.io/pageobjects/#dependency-injection).
+* Fixed using async/await functions inside `within`
+* [WebDriverIO][Protractor][Puppeteer][Nightmare] **`waitUntilExists` deprecated** in favor of `waitForElement`
+* [WebDriverIO][Protractor] **`waitForStalenessOf` deprecated** in favor of `waitForDetached`
+* [WebDriverIO][Protractor][Puppeteer][Nightmare] `waitForDetached` added
+* [Nightmare] Added `I.seeNumberOfElements()` by @pmoncadaisla
+* [Nightmare] Load blank page when starting nightmare so that the .evaluate function will work if _failed/saveScreenshot is triggered by @reubenmiller
+* Fixed using plain arrays for data driven tests by @reubenmiller
+* [Puppeteer] Use default tab instead of opening a new tab when starting the browser by @reubenmiller
+* [Puppeteer] Added `grabNumberOfTabs` function by @reubenmiller
+* [Puppeteer] Add ability to set user-agent by @abidhahmed
+* [Puppeteer] Add keepCookies and keepBrowserState @abidhahmed
+* [Puppeteer] Clear value attribute instead of innerhtml for TEXTAREA by @reubenmiller
+* [REST] fixed sending string payload by @michaltrunek
+* Fixed unhandled rejection in async/await tests by @APshenkin
+
+
+## 1.1.4
+
+* Removed `yarn` call in package.json
+* Fixed `console.log` in Puppeteer by @othree
+* [Appium] `runOnAndroid` and `runOnIOS` can receive a function to check capabilities dynamically:
+
+```js
+I.runOnAndroid(caps => caps.platformVersion >= 7, () => {
+  // run code only on Android 7+
+});
+```
+
+## 1.1.3
+
+* [Puppeteer] +25 Functions added by @reubenmiller
+    * `_locateCheckable`
+    * `_locateClickable`
+    * `_locateFields`
+    * `closeOtherTabs`
+    * `dragAndDrop`
+    * `grabBrowserLogs`
+    * `grabCssPropertyFrom`
+    * `grabHTMLFrom`
+    * `grabNumberOfVisibleElements`
+    * `grabSource`
+    * `rightClick`
+    * `scrollPageToBottom`
+    * `scrollPageToTop`
+    * `scrollTo`
+    * `seeAttributesOnElements`
+    * `seeCssPropertiesOnElements`
+    * `seeInField`
+    * `seeNumberOfElements`
+    * `seeNumberOfVisibleElements`
+    * `seeTextEquals`
+    * `seeTitleEquals`
+    * `switchTo`
+    * `waitForInvisible`
+    * `waitInUrl`
+    * `waitUrlEquals`
+* [Protractor] +8 functions added by @reubenmiller
+    * `closeCurrentTab`
+    * `grabSource`
+    * `openNewTab`
+    * `seeNumberOfElements`
+    * `seeTextEquals`
+    * `seeTitleEquals`
+    * `switchToNextTab`
+    * `switchToPreviousTab`
+* [Nightmare] `waitForInvisible` added by @reubenmiller
+* [Puppeteer] Printing console.log information in debug mode.
+* [Nightmare] Integrated with `nightmare-har-plugin` by mingfang. Added `enableHAR` option. Added HAR functions:
+    * `grabHAR`
+    * `saveHAR`
+    * `resetHAR`
+* [WebDriverIO] Fixed execution stability for parallel requests with Chromedriver
+* [WebDriverIO] Fixed resizeWindow when resizing to 'maximize' by @reubenmiller
+* [WebDriverIO] Fixing resizing window to full screen when taking a screenshot by @reubenmiller
+
+## 1.1.2
+
+* [Puppeteer] Upgraded to Puppeteer 1.0
+* Added `grep` option to config to set default matching pattern for tests.
+* [Puppeteer] Added `acceptPopup`, `cancelPopup`, `seeInPopup` and `grabPopupText` functions by @reubenmiller
+* [Puppeteer] `within` iframe and nested iframe support added by @reubenmiller
+* [REST] Added support for JSON objects since payload (as a JSON) was automatically converted into "URL query" type of parameter by @Kalostrinho
+* [REST] Added `resetRequestHeaders` method by @Kalostrinho
+* [REST] Added `followRedirect` option and `amFollowingRequestRedirects`/`amNotFollowingRequestRedirects` methods by @Kalostrinho
+* [WebDriverIO] `uncheckOption` implemented by @brunobg
+* [WebDriverIO] Added `grabBrowserUrl` by @Kalostrinho
+* Add ability to require helpers from node_modules by @APshenkin
+* Added `--profile` option to `run-multiple` command by @jamie-beck
+* Custom output name for multiple browser run by @tfiwm
+* Fixed passing data to scenarios by @KennyRules
+
 ## 1.1.1
 
 * [WebDriverIO] fixed `waitForInvisible` by @Kporal

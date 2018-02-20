@@ -12,7 +12,7 @@ const AssertionFailedError = require('../../lib/assert/error');
 const webApiTests = require('./webapi');
 
 describe('WebDriverIO', function () {
-  this.retries(3);
+  this.retries(1);
   this.timeout(35000);
 
   before(() => {
@@ -30,6 +30,12 @@ describe('WebDriverIO', function () {
       smartWait: 0, // just to try
       host: TestHelper.seleniumHost(),
       port: TestHelper.seleniumPort(),
+      waitForTimeout: 5000,
+      desiredCapabilities: {
+        chromeOptions: {
+          args: ['--headless', '--disable-gpu', '--window-size=1280,1024'],
+        },
+      },
     });
   });
 
@@ -139,25 +145,44 @@ describe('WebDriverIO', function () {
     });
   });
 
-  describe('#seeInSource', () => {
+  describe('#seeInSource, #grabSource', () => {
     it('should check for text to be in HTML source', () => wd.amOnPage('/')
       .then(() => wd.seeInSource('<title>TestEd Beta 2.0</title>'))
       .then(() => wd.dontSeeInSource('<meta')));
+
+    it('should grab the source', () => wd.amOnPage('/')
+      .then(() => wd.grabSource())
+      .then(source => assert.notEqual(source.indexOf('<title>TestEd Beta 2.0</title>'), -1, 'Source html should be retrieved')));
   });
 
   describe('#seeAttributesOnElements', () => {
     it('should check attributes values for given element', () => wd.amOnPage('/info')
-      .then(() => wd.seeAttributesOnElements('//form', { method: 'post' }))
-      .then(() => wd.seeAttributesOnElements('//form', { method: 'post', action: `${siteUrl}/` }))
-      .then(() => wd.seeAttributesOnElements('//form', { method: 'get' }))
+      .then(() => wd.seeAttributesOnElements('//form', {
+        method: 'post',
+      }))
+      .then(() => wd.seeAttributesOnElements('//form', {
+        method: 'post',
+        action: `${siteUrl}/`,
+      }))
+      .then(() => wd.seeAttributesOnElements('//form', {
+        method: 'get',
+      }))
       .catch((e) => {
         assert.equal(e.message, 'Not all elements (//form) have attributes {"method":"get"}');
       }));
 
     it('should check attributes values for several elements', () => wd.amOnPage('/')
-      .then(() => wd.seeAttributesOnElements('a', { 'qa-id': 'test', 'qa-link': 'test' }))
-      .then(() => wd.seeAttributesOnElements('//div', { 'qa-id': 'test' }))
-      .then(() => wd.seeAttributesOnElements('a', { 'qa-id': 'test', href: '/info' }))
+      .then(() => wd.seeAttributesOnElements('a', {
+        'qa-id': 'test',
+        'qa-link': 'test',
+      }))
+      .then(() => wd.seeAttributesOnElements('//div', {
+        'qa-id': 'test',
+      }))
+      .then(() => wd.seeAttributesOnElements('a', {
+        'qa-id': 'test',
+        href: '/info',
+      }))
       .catch((e) => {
         e.message.should.include('Not all elements (a) have attributes {"qa-id":"test","href":"/info"}');
       }));
@@ -176,9 +201,12 @@ describe('WebDriverIO', function () {
     it('should check text is equal to provided one', () => wd.amOnPage('/')
       .then(() => wd.seeTextEquals('Welcome to test app!', 'h1'))
       .then(() => wd.seeTextEquals('Welcome to test app', 'h1'))
+      .then(() => assert.equal(true, false, 'Throw an error because it should not get this far!'))
       .catch((e) => {
-        e.should.be.instanceOf(AssertionFailedError);
-        e.inspect().should.include("expected element h1 'Welcome to test app' to equal 'Welcome to test app!'");
+        e.should.be.instanceOf(Error);
+        e.message.should.be.equal('expected element h1 "Welcome to test app" to equal "Welcome to test app!"');
+        // e.should.be.instanceOf(AssertionFailedError);
+        // e.inspect().should.include("expected element h1 'Welcome to test app' to equal 'Welcome to test app!'");
       }));
   });
 
@@ -190,17 +218,32 @@ describe('WebDriverIO', function () {
 
   describe('#seeCssPropertiesOnElements', () => {
     it('should check css property for given element', () => wd.amOnPage('/info')
-      .then(() => wd.seeCssPropertiesOnElements('h3', { 'font-weight': 'bold' }))
-      .then(() => wd.seeCssPropertiesOnElements('h3', { 'font-weight': 'bold', display: 'block' }))
-      .then(() => wd.seeCssPropertiesOnElements('h3', { 'font-weight': 'non-bold' }))
+      .then(() => wd.seeCssPropertiesOnElements('h3', {
+        'font-weight': 'bold',
+      }))
+      .then(() => wd.seeCssPropertiesOnElements('h3', {
+        'font-weight': 'bold',
+        display: 'block',
+      }))
+      .then(() => wd.seeCssPropertiesOnElements('h3', {
+        'font-weight': 'non-bold',
+      }))
       .catch((e) => {
         e.message.should.include('Not all elements (h3) have CSS property {"font-weight":"non-bold"}');
       }));
 
     it('should check css property for several elements', () => wd.amOnPage('/')
-      .then(() => wd.seeCssPropertiesOnElements('a', { color: 'rgba(0, 0, 238, 1)', cursor: 'auto' }))
-      .then(() => wd.seeCssPropertiesOnElements('//div', { display: 'block' }))
-      .then(() => wd.seeCssPropertiesOnElements('a', { 'margin-top': '0em', cursor: 'auto' }))
+      .then(() => wd.seeCssPropertiesOnElements('a', {
+        color: 'rgba(0, 0, 238, 1)',
+        cursor: 'auto',
+      }))
+      .then(() => wd.seeCssPropertiesOnElements('//div', {
+        display: 'block',
+      }))
+      .then(() => wd.seeCssPropertiesOnElements('a', {
+        'margin-top': '0em',
+        cursor: 'auto',
+      }))
       .catch((e) => {
         e.message.should.include('Not all elements (a) have CSS property {"margin-top":"0em","cursor":"auto"}');
       }));
@@ -217,7 +260,9 @@ describe('WebDriverIO', function () {
       .then(() => wd.grabNumberOfVisibleElements('//div[@id = "grab-multiple"]//a'))
       .then(num => assert.equal(num, 3)));
     it('should support locators like {xpath:"//div"}', () => wd.amOnPage('/info')
-      .then(() => wd.grabNumberOfVisibleElements({ xpath: '//div[@id = "grab-multiple"]//a' }))
+      .then(() => wd.grabNumberOfVisibleElements({
+        xpath: '//div[@id = "grab-multiple"]//a',
+      }))
       .then(num => assert.equal(num, 3)));
   });
 
@@ -244,7 +289,9 @@ describe('WebDriverIO', function () {
 
     it('should create a screenshot on fail  @ups', () => {
       const sec = (new Date()).getUTCMilliseconds().toString();
-      const test = { title: `sw should do smth ${sec}` };
+      const test = {
+        title: `sw should do smth ${sec}`,
+      };
       return wd.amOnPage('/')
         .then(() => wd._failed(test))
         .then(() => assert.ok(fileExists(path.join(output_dir, `sw_should_do_smth_${sec}.failed.png`)), null, 'file does not exists'));
@@ -269,31 +316,74 @@ describe('WebDriverIO', function () {
       }));
   });
 
-  describe('#switchToNextTab, #switchToPreviousTab, #openNewTab, #closeCurrentTab', () => {
+  describe('#moveCursorTo', () => {
+    it('should trigger hover event', () => wd.amOnPage('/form/hover')
+      .then(() => wd.moveCursorTo('#hover'))
+      .then(() => wd.see('Hovered', '#show')));
+
+    it('should not trigger hover event because of the offset is beyond the element', () => wd.amOnPage('/form/hover')
+      .then(() => wd.moveCursorTo('#hover', 100, 100))
+      .then(() => wd.dontSee('Hovered', '#show')));
+  });
+
+  describe('#switchToNextTab, #switchToPreviousTab, #openNewTab, #closeCurrentTab, #closeOtherTabs, #grabNumberOfOpenTabs', () => {
+    it('should only have 1 tab open when the browser starts and navigates to the first page', () => wd.amOnPage('/')
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
     it('should switch to next tab', () => wd.amOnPage('/info')
-      .then(() => wd.click('New tab'))
-      .then(() => wd.switchToNextTab())
-      .then(() => wd.waitInUrl('/login')));
-    it('should assert when there is no ability to switch to next tab', () => wd.amOnPage('/')
-      .then(() => wd.click('More info'))
-      .then(() => wd.switchToNextTab(2))
-      .catch((e) => {
-        assert.equal(e.message, 'There is no ability to switch to next tab with offset 2');
-      }));
-    it('should close current tab', () => wd.amOnPage('/info')
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1))
       .then(() => wd.click('New tab'))
       .then(() => wd.switchToNextTab())
       .then(() => wd.waitInUrl('/login'))
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2)));
+
+    it('should assert when there is no ability to switch to next tab', () => wd.amOnPage('/')
+      .then(() => wd.click('More info'))
+      .then(() => wd.wait(1)) // Wait is required because the url is change by previous statement (maybe related to #914)
+      .then(() => wd.switchToNextTab(2))
+      .then(() => assert.equal(true, false, 'Throw an error if it gets this far (which it should not)!'))
+      .catch((e) => {
+        assert.equal(e.message, 'There is no ability to switch to next tab with offset 2');
+      }));
+
+    it('should close current tab', () => wd.amOnPage('/info')
+      .then(() => wd.click('New tab'))
+      .then(() => wd.switchToNextTab())
+      .then(() => wd.seeInCurrentUrl('/login'))
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2))
       .then(() => wd.closeCurrentTab())
-      .then(() => wd.waitInUrl('/info')));
+      .then(() => wd.seeInCurrentUrl('/info'))
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
+    it('should close other tabs', () => wd.amOnPage('/')
+      .then(() => wd.openNewTab())
+      .then(() => wd.seeInCurrentUrl('about:blank'))
+      .then(() => wd.amOnPage('/info'))
+      .then(() => wd.click('New tab'))
+      .then(() => wd.switchToNextTab())
+      .then(() => wd.seeInCurrentUrl('/login'))
+      .then(() => wd.closeOtherTabs())
+      .then(() => wd.seeInCurrentUrl('/login'))
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
     it('should open new tab', () => wd.amOnPage('/info')
       .then(() => wd.openNewTab())
-      .then(() => wd.waitInUrl('about:blank')));
+      .then(() => wd.waitInUrl('about:blank'))
+      .then(() => wd.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2)));
+
     it('should switch to previous tab', () => wd.amOnPage('/info')
       .then(() => wd.openNewTab())
       .then(() => wd.waitInUrl('about:blank'))
       .then(() => wd.switchToPreviousTab())
       .then(() => wd.waitInUrl('/info')));
+
     it('should assert when there is no ability to switch to previous tab', () => wd.amOnPage('/info')
       .then(() => wd.openNewTab())
       .then(() => wd.waitInUrl('about:blank'))
@@ -319,6 +409,15 @@ describe('WebDriverIO', function () {
       .then(() => wd.click('Alert'))
       .then(() => wd.seeInPopup('Really?'))
       .then(() => wd.cancelPopup()));
+
+    it('should grab text from popup', () => wd.amOnPage('/form/popup')
+      .then(() => wd.click('Alert'))
+      .then(() => wd.grabPopupText())
+      .then(text => assert.equal(text, 'Really?')));
+
+    it('should return null if no popup is visible (do not throw an error)', () => wd.amOnPage('/form/popup')
+      .then(() => wd.grabPopupText())
+      .then(text => assert.equal(text, null)));
   });
 
   describe('#waitForText', () => {
@@ -390,6 +489,16 @@ describe('WebDriverIO', function () {
       .then(() => wd.click('Window Size'))
       .then(() => wd.see('Height 600', '#height'))
       .then(() => wd.see('Width 950', '#width')));
+
+    it('should resize window to maximum screen dimensions', () => wd.amOnPage('/form/resize')
+      .then(() => wd.resizeWindow(500, 400))
+      .then(() => wd.click('Window Size'))
+      .then(() => wd.see('Height 400', '#height'))
+      .then(() => wd.see('Width 500', '#width'))
+      .then(() => wd.resizeWindow('maximize'))
+      .then(() => wd.click('Window Size'))
+      .then(() => wd.dontSee('Height 400', '#height'))
+      .then(() => wd.dontSee('Width 500', '#width')));
   });
 
   describe('SmartWait', () => {
@@ -451,5 +560,32 @@ describe('WebDriverIO', function () {
     it('should not locate a non-existing field', () => wd.amOnPage('/form/field')
       .then(() => wd._locateFields('Mother-in-law'))
       .then(res => res.length.should.be.equal(0)));
+  });
+
+  describe('#grabBrowserLogs', () => {
+    it('should grab browser logs', () => wd.amOnPage('/')
+      .then(() => wd.executeScript(() => {
+        console.log('Test log entry');
+      }))
+      .then(() => wd.grabBrowserLogs())
+      .then((logs) => {
+        const matchingLogs = logs.filter(log => log.message.indexOf('Test log entry') > -1);
+        assert.equal(matchingLogs.length, 1);
+      }));
+
+    it('should grab browser logs across pages', () => wd.amOnPage('/')
+      .then(() => wd.executeScript(() => {
+        console.log('Test log entry 1');
+      }))
+      .then(() => wd.openNewTab())
+      .then(() => wd.amOnPage('/info'))
+      .then(() => wd.executeScript(() => {
+        console.log('Test log entry 2');
+      }))
+      .then(() => wd.grabBrowserLogs())
+      .then((logs) => {
+        const matchingLogs = logs.filter(log => log.message.indexOf('Test log entry') > -1);
+        assert.equal(matchingLogs.length, 2);
+      }));
   });
 });

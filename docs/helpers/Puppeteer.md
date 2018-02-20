@@ -10,13 +10,18 @@ Requires `puppeteer` package to be installed.
 
 This helper should be configured in codecept.json
 
--   `url` - base url of website to be tested
--   `show` (optional, default: false) - show Google Chrome window for debug.
--   `disableScreenshots` (optional, default: false)  - don't save screenshot on failure.
--   `uniqueScreenshotNames` (optional, default: false)  - option to prevent screenshot override if you have scenarios with the same name in different suites.
+-   `url`: base url of website to be tested
+-   `show`: (optional, default: false) - show Google Chrome window for debug.
+-   `restart`: (optional, default: true) - restart browser between tests.
+-   `disableScreenshots`: (optional, default: false)  - don't save screenshot on failure.
+-   `uniqueScreenshotNames`: (optional, default: false)  - option to prevent screenshot override if you have scenarios with the same name in different suites.
+-   `keepBrowserState`: (optional, default: false) - keep browser state between tests when `restart` is set to false.
+-   `keepCookies`: (optional, default: false) - keep cookies between tests when `restart` is set to false.
 -   `waitForAction`: (optional) how long to wait after click, doubleClick or PressKey actions in ms. Default: 100.
 -   `waitForTimeout`: (optional) default wait* timeout in ms. Default: 1000.
 -   `windowSize`: (optional) default window size. Set a dimension like `640x480`.
+-   `userAgent`: (optional) user-agent string.
+-   `manualStart`: (optional, default: false) - do not start browser before a test, start it manually inside a helper with `this.helpers["Puppeteer"]._startBrowser()`.
 -   `chrome`: (optional) pass additional [Puppeteer run options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerlaunchoptions). Example
 
 ```js
@@ -28,6 +33,14 @@ This helper should be configured in codecept.json
 **Parameters**
 
 -   `config`  
+
+## _addPopupListener
+
+Add the 'dialog' event listener to a page
+
+**Parameters**
+
+-   `page`  
 
 ## _locate
 
@@ -41,6 +54,78 @@ const elements = await this.helpers['Puppeteer']._locate({name: 'password'});
 **Parameters**
 
 -   `locator`  
+
+## _locateCheckable
+
+Find a checkbox by providing human readable text:
+
+```js
+this.helpers['Puppeteer']._locateCheckable('I agree with terms and conditions').then // ...
+```
+
+**Parameters**
+
+-   `locator`  
+
+## _locateClickable
+
+Find a clickable element by providing human readable text:
+
+```js
+this.helpers['Puppeteer']._locateClickable('Next page').then // ...
+```
+
+**Parameters**
+
+-   `locator`  
+
+## _locateFields
+
+Find field elements by providing human readable text:
+
+```js
+this.helpers['Puppeteer']._locateFields('Your email').then // ...
+```
+
+**Parameters**
+
+-   `locator`  
+
+## _setPage
+
+Set current page
+
+**Parameters**
+
+-   `page` **object** page to set
+
+## acceptPopup
+
+Accepts the active JavaScript native popup window, as created by window.alert|window.confirm|window.prompt.
+Don't confuse popups with modal windows, as created by [various
+libraries](http://jster.net/category/windows-modals-popups).
+
+## amAcceptingPopups
+
+Set the automatic popup response to Accept.
+This must be set before a popup is triggered.
+
+```js
+I.amAcceptingPopups();
+I.click('#triggerPopup');
+I.acceptPopup();
+```
+
+## amCancellingPopups
+
+Set the automatic popup response to Cancel/Dismiss.
+This must be set before a popup is triggered.
+
+```js
+I.amCancellingPopups();
+I.click('#triggerPopup');
+I.cancelPopup();
+```
 
 ## amOnPage
 
@@ -86,6 +171,10 @@ I.attachFile('form input[name=avatar]', 'data/avatar.jpg');
 
 -   `locator`  field located by label|name|CSS|XPath|strict locator
 -   `pathToFile`  local file path relative to codecept.json config file
+
+## cancelPopup
+
+Dismisses the active JavaScript popup, as created by window.alert|window.confirm|window.prompt.
 
 ## checkOption
 
@@ -169,6 +258,14 @@ Close current tab and switches to previous.
 
 ```js
 I.closeCurrentTab();
+```
+
+## closeOtherTabs
+
+Close all tabs except for the current one.
+
+```js
+I.closeOtherTabs();
 ```
 
 ## dontSee
@@ -277,6 +374,19 @@ I.doubleClick('.btn.edit');
 -   `locator`  
 -   `context`  
 
+## dragAndDrop
+
+Drag an item to a destination element.
+
+```js
+I.dragAndDrop('#dragHandle', '#container');
+```
+
+**Parameters**
+
+-   `source`  
+-   `destination`  
+
 ## executeAsyncScript
 
 Executes async script on page.
@@ -369,6 +479,15 @@ let hint = yield I.grabAttributeFrom('#tooltip', 'title');
 -   `locator`  element located by CSS|XPath|strict locator
 -   `attr`  
 
+## grabBrowserLogs
+
+Get JS log from browser.
+
+```js
+let logs = await I.grabBrowserLogs();
+console.log(JSON.stringify(logs))
+```
+
 ## grabCookie
 
 Gets a cookie object by name
@@ -382,6 +501,70 @@ assert(cookie.value, '123456');
 **Parameters**
 
 -   `name`  Returns cookie in JSON format. If name not passed returns all cookies for this domain.
+
+## grabCssPropertyFrom
+
+Grab CSS property for given locator
+
+```js
+I.grabCssPropertyFrom('h3', 'font-weight');
+```
+
+**Parameters**
+
+-   `locator`  
+-   `cssProperty`  
+
+## grabHTMLFrom
+
+Retrieves the innerHTML from an element located by CSS or XPath and returns it to test.
+Resumes test execution, so **should be used inside a generator with `yield`** operator.
+Appium: support only web testing
+
+```js
+let postHTML = yield I.grabHTMLFrom('#post');
+```
+
+**Parameters**
+
+-   `locator`  
+
+## grabNumberOfOpenTabs
+
+Grab number of open tabs
+
+```js
+I.grabNumberOfOpenTabs();
+```
+
+## grabNumberOfVisibleElements
+
+Grab number of visible elements by locator
+
+```js
+I.grabNumberOfVisibleElements('p');
+```
+
+**Parameters**
+
+-   `locator`  
+
+## grabPopupText
+
+Grab the text within the popup. If no popup is visible then it will return null
+
+```js
+await I.grabPopupText();
+```
+
+## grabSource
+
+Retrieves page source and returns it to test.
+Resumes test execution, so should be used inside an async function.
+
+```js
+let pageSource = await I.grabSource();
+```
 
 ## grabTextFrom
 
@@ -442,8 +625,6 @@ I.moveCursorTo('.tooltip');
 I.moveCursorTo('#submit', 5,5);
 ```
 
-For Puppeteer offsetX and offsetY arguments are ignored
-
 **Parameters**
 
 -   `locator`  
@@ -461,7 +642,7 @@ I.openNewTab();
 ## pressKey
 
 Presses a key on a focused element.
-Speical keys like 'Enter', 'Control', [etc](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value)
+Special keys like 'Enter', 'Control', [etc](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value)
 will be replaced with corresponding unicode.
 If modifier key is used (Control, Command, Alt, Shift) in array, it will be released afterwards.
 
@@ -494,6 +675,15 @@ First parameter can be set to `maximize`
     Puppeteer does not control the window of a browser so it can't adjust its real size.
     It also can't maximize a window.
 
+## rightClick
+
+Performs right click on an element matched by CSS or XPath.
+
+**Parameters**
+
+-   `locator`  
+-   `context`   (optional, default `null`)
+
 ## saveScreenshot
 
 Saves a screenshot to ouput folder (set in codecept.json).
@@ -510,6 +700,38 @@ I.saveScreenshot('debug.png',true) \\resizes to available scrollHeight and scrol
 -   `fileName`  
 -   `fullPage`  (optional)
 
+## scrollPageToBottom
+
+Scroll page to the bottom
+
+```js
+I.scrollPageToBottom();
+```
+
+## scrollPageToTop
+
+Scroll page to the top
+
+```js
+I.scrollPageToTop();
+```
+
+## scrollTo
+
+Scrolls to element matched by locator.
+Extra shift can be set with offsetX and offsetY options
+
+```js
+I.scrollTo('footer');
+I.scrollTo('#submit', 5,5);
+```
+
+**Parameters**
+
+-   `locator`  
+-   `offsetX`   (optional, default `0`)
+-   `offsetY`   (optional, default `0`)
+
 ## see
 
 Checks that a page contains a visible text.
@@ -525,6 +747,19 @@ I.see('Register', {css: 'form.register'}); // use strict locator
 
 -   `text`  expected on page
 -   `context`  (optional) element located by CSS|Xpath|strict locator in which to search for text
+
+## seeAttributesOnElements
+
+Checks that all elements with given locator have given attributes.
+
+```js
+I.seeAttributesOnElements('//form', {'method': "post"});
+```
+
+**Parameters**
+
+-   `locator`  
+-   `attributes`  
 
 ## seeCheckboxIsChecked
 
@@ -551,6 +786,19 @@ I.seeCookie('Auth');
 **Parameters**
 
 -   `name`  
+
+## seeCssPropertiesOnElements
+
+Checks that all elements with given locator have given CSS properties.
+
+```js
+I.seeCssPropertiesOnElements('h3', { 'font-weight': 'bold' });
+```
+
+**Parameters**
+
+-   `locator`  
+-   `cssProperties`  
 
 ## seeCurrentUrlEquals
 
@@ -622,6 +870,15 @@ I.seeInField('#searchform input','Search');
 -   `field`  located by label|name|CSS|XPath|strict locator
 -   `value`  
 
+## seeInPopup
+
+Checks that the active JavaScript popup, as created by `window.alert|window.confirm|window.prompt`, contains the
+given string.
+
+**Parameters**
+
+-   `text`  
+
 ## seeInSource
 
 Checks that the current page contains the given string in its raw source code.
@@ -637,6 +894,59 @@ I.seeInSource('<h1>Green eggs &amp; ham</h1>');
 ## seeInTitle
 
 Checks that title contains text.
+
+**Parameters**
+
+-   `text`  
+
+## seeNumberOfElements
+
+asserts that an element appears a given number of times in the DOM
+Element is located by label or name or CSS or XPath.
+
+```js
+I.seeNumberOfElements('#submitBtn', 1);
+```
+
+**Parameters**
+
+-   `selector`  
+-   `num`  
+
+## seeNumberOfVisibleElements
+
+asserts that an element is visible a given number of times
+Element is located by CSS or XPath.
+
+```js
+I.seeNumberOfVisibleElements('.buttons', 3);
+```
+
+**Parameters**
+
+-   `locator`  
+-   `num`  
+
+## seeTextEquals
+
+Checks that text is equal to provided one.
+
+```js
+I.seeTextEquals('text', 'h1');
+```
+
+**Parameters**
+
+-   `text`  
+-   `context`   (optional, default `null`)
+
+## seeTitleEquals
+
+Checks that title is equal to provided one.
+
+```js
+I.seeTitleEquals('Test title.');
+```
 
 **Parameters**
 
@@ -680,6 +990,14 @@ I.setCookie({name: 'auth', value: true});
 
 -   `cookie`  
 
+## switchTo
+
+Switches frame or in case of null locator reverts to parent.
+
+**Parameters**
+
+-   `locator`  
+
 ## switchToNextTab
 
 Switch focus to a particular tab by its number. It waits tabs loading and then switch tab
@@ -718,6 +1036,18 @@ I.wait(2); // wait 2 secs
 
 -   `sec`  
 
+## waitForDetached
+
+Waits for an element to become not attached to the DOM on a page (by default waits for 1sec).
+Element can be located by CSS or XPath.
+
+    I.waitForDetached('#popup');
+
+**Parameters**
+
+-   `locator`  element located by CSS|XPath|strict locator
+-   `sec`  time seconds to wait, 1 by default
+
 ## waitForElement
 
 Waits for element to be present on page (by default waits for 1sec).
@@ -727,6 +1057,18 @@ Element can be located by CSS or XPath.
 I.waitForElement('.btn.continue');
 I.waitForElement('.btn.continue', 5); // wait for 5 secs
 ```
+
+**Parameters**
+
+-   `locator`  element located by CSS|XPath|strict locator
+-   `sec`  time seconds to wait, 1 by default
+
+## waitForInvisible
+
+Waits for an element to become invisible on a page (by default waits for 1sec).
+Element can be located by CSS or XPath.
+
+    I.waitForInvisible('#popup');
 
 **Parameters**
 
@@ -762,6 +1104,19 @@ Element can be located by CSS or XPath.
 -   `locator`  element located by CSS|XPath|strict locator
 -   `sec`  time seconds to wait, 1 by default
 
+## waitInUrl
+
+Waiting for the part of the URL to match the expected. Useful for SPA to understand that page was changed.
+
+```js
+I.waitInUrl('/info', 2);
+```
+
+**Parameters**
+
+-   `urlPart`  
+-   `sec`   (optional, default `null`)
+
 ## waitToHide
 
 Waits for an element to hide (by default waits for 1sec).
@@ -789,17 +1144,16 @@ I.waitUntil(() => window.requests == 0, 5);
 -   `fn`  
 -   `sec`  time seconds to wait, 1 by default
 
-## waitUntilExists
+## waitUrlEquals
 
-Waits for element not to be present on page (by default waits for 1sec).
-Element can be located by CSS or XPath.
+Waits for the entire URL to match the expected
 
 ```js
-I.waitUntilExists('.btn.continue');
-I.waitUntilExists('.btn.continue', 5); // wait for 5 secs
+I.waitUrlEquals('/info', 2);
+I.waitUrlEquals('http://127.0.0.1:8000/info');
 ```
 
 **Parameters**
 
--   `locator`  element located by CSS|XPath|strict locator
--   `sec`  time seconds to wait, 1 by default
+-   `urlPart`  
+-   `sec`   (optional, default `null`)

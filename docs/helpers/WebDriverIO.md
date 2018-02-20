@@ -9,20 +9,20 @@ WebDriverIO requires [Selenium Server and ChromeDriver/GeckoDriver to be install
 
 This helper should be configured in codecept.json
 
--   `url` - base url of website to be tested
--   `browser` - browser in which perform testing
--   `restart` (optional, default: true) - restart browser between tests.
--   `smartWait`: (optional) **enables [SmartWait](http://codecept.io/acceptance/#smartwait)**; wait for additional milliseconds for element to appear. Enable for 5 secs: "smartWait": 5000
--   `disableScreenshots` (optional, default: false)  - don't save screenshot on failure
--   `uniqueScreenshotNames` (optional, default: false)  - option to prevent screenshot override if you have scenarios with the same name in different suites
--   `keepBrowserState` (optional, default: false)  - keep browser state between tests when `restart` set to false.
--   `keepCookies` (optional, default: false)  - keep cookies between tests when `restart` set to false.
+-   `url`: base url of website to be tested.
+-   `browser`: browser in which to perform testing.
+-   `restart`: (optional, default: true) - restart browser between tests.
+-   `smartWait`: (optional) **enables [SmartWait](http://codecept.io/acceptance/#smartwait)**; wait for additional milliseconds for element to appear. Enable for 5 secs: "smartWait": 5000.
+-   `disableScreenshots`: (optional, default: false) - don't save screenshots on failure.
+-   `uniqueScreenshotNames`: (optional, default: false) - option to prevent screenshot override if you have scenarios with the same name in different suites.
+-   `keepBrowserState`: (optional, default: false) - keep browser state between tests when `restart` is set to false.
+-   `keepCookies`: (optional, default: false) - keep cookies between tests when `restart` set to false.
 -   `windowSize`: (optional) default window size. Set to `maximize` or a dimension in the format `640x480`.
--   `waitForTimeout`: (option) sets default wait time in _ms_ for all `wait*` functions. 1000 by default;
+-   `waitForTimeout`: (option) sets default wait time in _ms_ for all `wait*` functions. 1000 by default.
 -   `desiredCapabilities`: Selenium's [desired
-    capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
--   `manualStart` (optional, default: false) - do not start browser before a test, start it manually inside a helper
-    with `this.helpers["WebDriverIO"]._startBrowser()`
+    capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities).
+-   `manualStart`: (optional, default: false) - do not start browser before a test, start it manually inside a helper
+    with `this.helpers["WebDriverIO"]._startBrowser()`.
 -   `timeouts`: [WebDriverIO timeouts](http://webdriver.io/guide/testrunner/timeouts.html) defined as hash.
 
 Example:
@@ -382,7 +382,7 @@ I.closeCurrentTab();
 
 ## closeOtherTabs
 
-Close all tabs expect for one.
+Close all tabs except for the current one.
 Appium: support web test
 
 ```js
@@ -629,6 +629,15 @@ let logs = yield I.grabBrowserLogs();
 console.log(JSON.stringify(logs))
 ```
 
+## grabBrowserUrl
+
+Get current URL from browser.
+
+```js
+let url = yield I.grabBrowserUrl();
+console.log(`Current URL is [${url}]`);
+```
+
 ## grabCookie
 
 Gets a cookie object by name
@@ -670,6 +679,14 @@ let postHTML = yield I.grabHTMLFrom('#post');
 
 -   `locator`  
 
+## grabNumberOfOpenTabs
+
+Grab number of open tabs
+
+```js
+I.grabNumberOfOpenTabs();
+```
+
 ## grabNumberOfVisibleElements
 
 Grab number of visible elements by locator
@@ -682,17 +699,24 @@ I.grabNumberOfVisibleElements('p');
 
 -   `locator`  
 
-## grabSource
+## grabPopupText
 
-Checks that the current page contains the given string in its raw source code.
+Grab the text within the popup. If no popup is visible then it will return null
 
 ```js
-I.seeInSource('<h1>Green eggs &amp; ham</h1>');
+await I.grabPopupText();
 ```
 
-**Parameters**
+## grabSource
 
--   `text`  Appium: support
+Retrieves page source and returns it to test.
+Resumes test execution, so should be used inside an async function.
+
+```js
+let pageSource = await I.grabSource();
+```
+
+Appium: support
 
 ## grabTextFrom
 
@@ -762,7 +786,7 @@ I.openNewTab();
 ## pressKey
 
 Presses a key on a focused element.
-Speical keys like 'Enter', 'Control', [etc](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value)
+Special keys like 'Enter', 'Control', [etc](https://code.google.com/p/selenium/wiki/JsonWireProtocol#/session/:sessionId/element/:id/value)
 will be replaced with corresponding unicode.
 If modifier key is used (Control, Command, Alt, Shift) in array, it will be released afterwards.
 
@@ -1184,6 +1208,24 @@ I.switchToPreviousTab(2);
 -   `num`   (optional, default `1`)
 -   `sec`   (optional, default `null`)
 
+## uncheckOption
+
+Unselects a checkbox or radio button.
+Element is located by label or name or CSS or XPath.
+
+The second parameter is a context (CSS or XPath locator) to narrow the search.
+
+```js
+I.uncheckOption('#agree');
+I.uncheckOption('I Agree to Terms and Conditions');
+I.uncheckOption('agree', '//form');
+```
+
+**Parameters**
+
+-   `field`  checkbox located by label | name | CSS | XPath | strict locator
+-   `context`  (optional) element located by CSS | XPath | strict locatorAppium: not tested
+
 ## wait
 
 Pauses execution for a number of seconds.
@@ -1195,6 +1237,18 @@ I.wait(2); // wait 2 secs
 **Parameters**
 
 -   `sec`  Appium: support
+
+## waitForDetached
+
+Waits for an element to become not attached to the DOM on a page (by default waits for 1sec).
+Element can be located by CSS or XPath.
+
+    I.waitForDetached('#popup');
+
+**Parameters**
+
+-   `locator`  element located by CSS|XPath|strict locator
+-   `sec`  time seconds to wait, 1 by defaultAppium: support
 
 ## waitForElement
 
@@ -1229,18 +1283,6 @@ Waits for an element to become invisible on a page (by default waits for 1sec).
 Element can be located by CSS or XPath.
 
     I.waitForInvisible('#popup');
-
-**Parameters**
-
--   `locator`  element located by CSS|XPath|strict locator
--   `sec`  time seconds to wait, 1 by defaultAppium: support
-
-## waitForStalenessOf
-
-Waits for an element to become not attached to the DOM on a page (by default waits for 1sec).
-Element can be located by CSS or XPath.
-
-    I.waitForStalenessOf('#popup');
 
 **Parameters**
 
@@ -1348,21 +1390,6 @@ I.waitUntil(() => window.requests == 0, 5);
 -   `sec`  time seconds to wait, 1 by defaultAppium: support
 -   `timeoutMsg`   (optional, default `null`)
 
-## waitUntilExists
-
-Waits for element not to be present on page (by default waits for 1sec).
-Element can be located by CSS or XPath.
-
-```js
-I.waitUntilExists('.btn.continue');
-I.waitUntilExists('.btn.continue', 5); // wait for 5 secs
-```
-
-**Parameters**
-
--   `locator`  element located by CSS|XPath|strict locator
--   `sec`  time seconds to wait, 1 by defaultAppium: support
-
 ## waitUrlEquals
 
 Waits for the entire URL to match the expected
@@ -1377,6 +1404,44 @@ I.waitUrlEquals('http://127.0.0.1:8000/info');
 -   `urlPart`  
 -   `sec`   (optional, default `null`)
 
+# filterAsync
+
+Mimic Array.filter() API, but with an async callback function.
+Execute each callback on each array item serially. Useful when using WebDriverIO API.
+
+Added due because of problem with chrome driver when too many requests
+are made simultaneously. <https://bugs.chromium.org/p/chromedriver/issues/detail?id=2152#c9>
+
+**Parameters**
+
+-   `array` **Array&lt;object&gt;** Input array items to iterate over
+-   `callback` **function** Async function to excute on each array item
+-   `option` **object** Additional options. 'extractValue' will extract the .value object from a WebdriverIO
+
+# forEachAsync
+
+Mimic Array.forEach() API, but with an async callback function.
+Execute each callback on each array item serially. Useful when using WebDriverIO API.
+
+Added due because of problem with chrome driver when too many requests
+are made simultaneously. <https://bugs.chromium.org/p/chromedriver/issues/detail?id=2152#c9>
+
+**Parameters**
+
+-   `array` **Array&lt;object&gt;** Input array items to iterate over
+-   `callback` **function** Async function to excute on each array item
+-   `option` **object** Additional options. 'extractValue' will extract the .value object from a WebdriverIO
+
 # locator
 
 just press button if no selector is given
+
+# unify
+
+Internal helper method to handle command results (similar behaviour as the unify function from WebDriverIO
+except it does not resolve promises)
+
+**Parameters**
+
+-   `items` **Array&lt;object&gt;** list of items
+-   `option` **[object]** extractValue: set to try to return the .value property of the input items

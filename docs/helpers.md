@@ -4,6 +4,8 @@ Helpers is a core concept of CodeceptJS. Helper is a wrapper around various libr
 Methods of Helper class will be available in tests in `I` object. This abstracts test scenarios from the implementation and allows easy switching between backends.
 Functionality of CodeceptJS should be extended by writing a custom helpers.
 
+Helpers can also be installed as Node packages and required by corresponding Node modules
+
 You can either access core Helpers (and underlying libraries) or create a new from scratch.
 
 ## Development
@@ -194,36 +196,59 @@ Each implemented method should return a value as they will be added to global pr
 
 1)  Failing if JS error occur in WebDriverIO:
 
-    ```js
-    class JSFailure extends codecept_helper {
+```js
+class JSFailure extends codecept_helper {
 
-      _before() {
-        this.err = null;
-        this.helpers['WebDriverIO'].browser.on('error', (e) => this.err = e);
-      }
+  _before() {
+    this.err = null;
+    this.helpers['WebDriverIO'].browser.on('error', (e) => this.err = e);
+  }
 
-      _afterStep() {
-        if (this.err) throw new Error('Browser JS error '+this.err);
-      }
-    }
+  _afterStep() {
+    if (this.err) throw new Error('Browser JS error '+this.err);
+  }
+}
 
-    module.exports = JSFailure;
-    ```
+module.exports = JSFailure;
+```
 
 2)  Wait for Ajax requests to complete after `click`:
 
-    ```js
-    class JSWait extends codecept_helper {
+```js
+class JSWait extends codecept_helper {
 
-      _afterStep(step) {
-        if (step.name == 'click') {
-          var jqueryActive = () => jQuery.active == 0;
-          return this.helpers['WebDriverIO'].waitUntil(jqueryActive);
-        }
-      }
+  _afterStep(step) {
+    if (step.name == 'click') {
+      var jqueryActive = () => jQuery.active == 0;
+      return this.helpers['WebDriverIO'].waitUntil(jqueryActive);
     }
+  }
+}
 
-    module.exports = JSWait;
-    ```
+module.exports = JSWait;
+```
+
+## Conditional Retries
+
+It is possible to execute global conditional retries to handle unforseen errors.
+Lost connections and network issues are good candidates to be retried whenever they appear.
+
+This can be done inside a helper using the global [promise recorder](https://codecept.io/hooks/#api):
+
+Example: Retrying rendering errors in Puppeteer.
+
+```js
+_before() {
+  const recorder = require('codeceptjs').recorder;
+  recorder.retry({
+    retries: 2,
+    when: err => err.message.indexOf('Cannot find context with specified id') > -1,
+  });
+}
+```
+
+`recorder.retry` acts similarly to `I.retry()` and accepts the same parameters. It expects the `when` parameter to be set so it would handle only specific errors and not to retry for every failed step.
+
+Retry rules are available in array `recorder.retries`. The last retry rule can be disabled by running `recorder.retries.pop()`;
 
 ### done()

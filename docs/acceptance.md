@@ -46,10 +46,16 @@ Strict locators allow to specify additional locator types:
 ```js
 // locate form element by name
 I.seeElement({name: 'password'});
-// locate element by text
-I.seeElement({text: 'press me'});
 // locate element by id
 I.seeElement({id: 'users'});
+```
+
+In [mobile testing](http://codecept.io/mobile/#locating-elements) you can use `~` to specify accessibility id to locate an element. In web application you can locate element by their `aria-label` value.
+
+```js
+// locate element by [aria-label] attribute in web
+// or by accessibility id in mobile
+I.seeElement('~username');
 ```
 
 ## Clicking
@@ -249,16 +255,16 @@ within({frame: "#editor"}, () => {
 });
 ```
 
-Nested IFrames can be set by passing array *(WebDriverIO & Nightmare only)*:
+Nested IFrames can be set by passing array *(WebDriverIO, Nightmare & Puppeteer only)*:
 
 ```js
 within({frame: [".content", "#editor"]}, () => {
   I.see('Page');
 });
 ```
+
 ---
 
 ### done()
 
 CodeceptJS through helpers provides user friendly API to interact with a webpage. In this section we described using WebDriverIO helper which allows to control browser through Selenium WebDriver.
-

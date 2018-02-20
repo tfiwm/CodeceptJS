@@ -33,6 +33,12 @@ describe('Protractor', function () {
       browser: 'chrome',
       seleniumAddress: TestHelper.seleniumAddress(),
       angular: true,
+      waitForTimeout: 5000,
+      desiredCapabilities: {
+        chromeOptions: {
+          args: ['--headless', '--disable-gpu', '--window-size=1280,1024'],
+        },
+      },
     });
     return I._init().then(() => I._beforeSuite());
   });
@@ -323,7 +329,7 @@ describe('Protractor', function () {
     });
   });
 
-  describe('page title : #seeTitle, #dontSeeTitle, #grabTitle', () => {
+  describe('page title : #seeTitle, #dontSeeTitle, #grabTitle, #seeTitleEquals', () => {
     it('should check page title', function* () {
       yield I.amOnPage('/');
       return I.seeInTitle('Event App');
@@ -333,6 +339,25 @@ describe('Protractor', function () {
       yield I.amOnPage('/');
       return expect(I.grabTitle()).to.eventually.equal('Event App');
     });
+
+    it('should check that title is equal to provided one', () => I.amOnPage('/')
+      .then(() => I.seeTitleEquals('Event App'))
+      .then(() => I.seeTitleEquals('Event Ap'))
+      .then(() => assert.equal(true, false, 'Throw an error because it should not get this far!'))
+      .catch((e) => {
+        e.should.be.instanceOf(Error);
+        e.message.should.be.equal('expected web page title "Event App" to equal "Event Ap"');
+      }));
+  });
+
+  describe('#seeTextEquals', () => {
+    it('should check text is equal to provided one', () => I.amOnPage('/')
+      .then(() => I.seeTextEquals('Create Event', 'h1'))
+      .then(() => I.seeTextEquals('Create Even', 'h1'))
+      .catch((e) => {
+        e.should.be.instanceOf(AssertionFailedError);
+        e.inspect().should.include("expected element h1 'Create Event' to equal 'Create Even'");
+      }));
   });
 
   describe('#saveScreenshot', () => {
@@ -360,6 +385,92 @@ describe('Protractor', function () {
     });
   });
 
+  describe('#switchToNextTab, #switchToPreviousTab, #openNewTab, #closeCurrentTab, #closeOtherTabs, #grabNumberOfOpenTabs', () => {
+    it('should only have 1 tab open when the browser starts and navigates to the first page', () => I.amOnPage('/')
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
+    it('should switch to next tab', () => I.amOnPage('/')
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1))
+      .then(() => I.click('Get More Options'))
+      .then(() => I.seeCurrentUrlEquals('/#/options'))
+      .then(() => I.openNewTab())
+      .then(() => I.amOnPage('/'))
+      .then(() => I.click('Get more info!'))
+      .then(() => I.seeCurrentUrlEquals('/#/info'))
+      .then(() => I.switchToPreviousTab())
+      .then(() => I.seeCurrentUrlEquals('/#/options'))
+      .then(() => I.switchToNextTab())
+      .then(() => I.seeCurrentUrlEquals('/#/info'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2)));
+
+    it('should assert when there is no ability to switch to next tab', () => I.amOnPage('/')
+      .then(() => I.click('Get More Options'))
+      .then(() => I.switchToNextTab(2))
+      .then(() => assert.equal(true, false, 'Throw an error if it gets this far (which it should not)!'))
+      .catch((e) => {
+        assert.equal(e.message, 'There is no ability to switch to next tab with offset 2');
+      }));
+
+    it('should assert when there is no ability to switch to previous tab', () => I.amOnPage('/')
+      .then(() => I.click('Get More Options'))
+      .then(() => I.switchToPreviousTab(2))
+      .then(() => assert.equal(true, false, 'Throw an error if it gets this far (which it should not)!'))
+      .catch((e) => {
+        assert.equal(e.message, 'There is no ability to switch to previous tab with offset 2');
+      }));
+
+    it('should close current tab', () => I.amOnPage('/')
+      .then(() => I.click('Get more info!'))
+      .then(() => I.seeInCurrentUrl('#/info'))
+      .then(() => I.openNewTab())
+      .then(() => I.amOnPage('/'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2))
+      .then(() => I.seeInCurrentUrl('#/'))
+      .then(() => I.dontSeeInCurrentUrl('#/info'))
+      .then(() => I.closeCurrentTab())
+      .then(() => I.seeInCurrentUrl('#/info'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
+    it('should close other tabs', () => I.amOnPage('/')
+      .then(() => I.click('Get more info!'))
+      .then(() => I.seeCurrentUrlEquals('/#/info'))
+      .then(() => I.openNewTab())
+      .then(() => I.amOnPage('/'))
+      .then(() => I.openNewTab())
+      .then(() => I.amOnPage('/'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 3))
+      .then(() => I.click('Get More Options'))
+      .then(() => I.seeCurrentUrlEquals('/#/options'))
+      .then(() => I.closeOtherTabs())
+      .then(() => I.seeCurrentUrlEquals('/#/options'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1)));
+
+    it('should open new tab', () => I.amOnPage('/')
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 1))
+      .then(() => I.openNewTab())
+      .then(() => I.amOutsideAngularApp())
+      .then(() => I.seeInCurrentUrl('about:blank'))
+      .then(() => I.grabNumberOfOpenTabs())
+      .then(numPages => assert.equal(numPages, 2)));
+
+    it('should switch to previous tab', () => I.amOnPage('/')
+      .then(() => I.click('Get more info!'))
+      .then(() => I.openNewTab())
+      .then(() => I.amOnPage('/'))
+      .then(() => I.seeInCurrentUrl('/#/'))
+      .then(() => I.switchToPreviousTab())
+      .then(() => I.wait(2))
+      .then(() => I.seeInCurrentUrl('/#/info')));
+  });
+
   describe('cookies : #setCookie, #clearCookies, #seeCookie', () => {
     it('should do all cookie stuff', function* () {
       yield I.amOnPage('/');
@@ -372,11 +483,17 @@ describe('Protractor', function () {
     });
   });
 
-  describe('#seeInSource', () => {
+  describe('#seeInSource, #grabSource', () => {
     it('should check for text to be in HTML source', function* () {
       yield I.amOnPage('/');
       yield I.seeInSource('<meta charset="utf-8"');
       return I.dontSeeInSource('<article');
+    });
+
+    it('should grab the source', async () => {
+      await I.amOnPage('/');
+      const source = await I.grabSource();
+      assert.notEqual(source.indexOf('<meta charset="utf-8"'), -1, 'Source html should be retrieved');
     });
   });
 
@@ -449,6 +566,11 @@ describe('Protractor', function () {
         .catch((e) => {
           e.message.should.include('Wait timed out');
         });
+    });
+
+    describe('#seeNumberOfElements', () => {
+      it('should return 1 as count', () => I.amOnPage('/')
+        .then(() => I.seeNumberOfElements('h1', 1)));
     });
   });
 });

@@ -38,7 +38,7 @@ describe('REST', () => {
     } catch (err) {
       // continue regardless of error
     }
-    setTimeout(done, 700);
+    setTimeout(done, 1000);
   });
 
   describe('basic requests', () => {
@@ -46,11 +46,27 @@ describe('REST', () => {
       response.body.name.should.eql('davert');
     }));
 
-    it('should send POST requests', () => I.sendPostRequest('/user', { name: 'john' }).then((response) => {
+    it('should send PATCH requests: payload format = json', () => I.sendPatchRequest('/user', { email: 'user@user.com' }).then((response) => {
+      response.body.email.should.eql('user@user.com');
+    }));
+    it('should send PATCH requests: payload format = form urlencoded', () => I.sendPatchRequest('/user', 'email=user@user.com').then((response) => {
+      response.body.email.should.eql('user@user.com');
+    }));
+
+    it('should send POST requests: payload format = json', () => I.sendPostRequest('/user', { name: 'john' }).then((response) => {
+      response.body.name.should.eql('john');
+    }));
+    it('should send POST requests: payload format = form urlencoded', () => I.sendPostRequest('/user', 'name=john').then((response) => {
       response.body.name.should.eql('john');
     }));
 
-    it('should send PUT requests', () => I.sendPutRequest('/posts/1', { author: 'john' }).then((response) => {
+    it('should send PUT requests: payload format = json', () => I.sendPutRequest('/posts/1', { author: 'john' }).then((response) => {
+      response.body.author.should.eql('john');
+      return I.sendGetRequest('/posts/1').then((response) => {
+        response.body.author.should.eql('john');
+      });
+    }));
+    it('should send PUT requests: payload format = form urlencoded', () => I.sendPutRequest('/posts/1', 'author=john').then((response) => {
       response.body.author.should.eql('john');
       return I.sendGetRequest('/posts/1').then((response) => {
         response.body.author.should.eql('john');

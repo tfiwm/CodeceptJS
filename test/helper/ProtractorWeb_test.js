@@ -34,6 +34,12 @@ describe('Protractor-NonAngular', function () {
       angular: false,
       restart: false,
       seleniumAddress: TestHelper.seleniumAddress(),
+      waitForTimeout: 5000,
+      desiredCapabilities: {
+        chromeOptions: {
+          args: ['--headless', '--disable-gpu', '--window-size=1280,1024'],
+        },
+      },
     });
     return I._init().then(() => I._beforeSuite().then(() => {
       browser = I.browser;
@@ -42,7 +48,10 @@ describe('Protractor-NonAngular', function () {
 
 
   beforeEach(() => {
-    webApiTests.init({ I, siteUrl });
+    webApiTests.init({
+      I,
+      siteUrl,
+    });
     return I._before();
   });
 
@@ -113,7 +122,9 @@ describe('Protractor-NonAngular', function () {
       }));
 
     it('should fail when test is not in context', () => I.amOnPage('/')
-      .then(() => I.see('debug', { css: 'a' }))
+      .then(() => I.see('debug', {
+        css: 'a',
+      }))
       .catch((e) => {
         e.should.be.instanceOf(AssertionFailedError);
         e.toString().should.not.include('web page');

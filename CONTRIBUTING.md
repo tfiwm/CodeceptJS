@@ -36,7 +36,8 @@ Execute test suite:
 
 ```sh
 mocha test/helper/WebDriverIO_test.js
-mocha test/helper/SeleniumWebdriver_test.js
+mocha test/helper/Puppeteer_test.js
+mocha test/helper/Nightmare_test.js
 ```
 
 Use `--grep` to execute tests only for changed parts.
@@ -79,7 +80,7 @@ Start JSON server to run tests:
 npm run json-server
 ```
 
-Edit a test at `tests/helper/REST_test.js` or `test/helper/ApiDataFactory_test.js`
+Edit a test at `test/rest/REST_test.js` or `test/rest/ApiDataFactory_test.js`
 
 ## Appium
 
@@ -110,6 +111,7 @@ mocha test/runner
 Please try to add corresponding testcase to runner or unit.
 
 ## Running tests in Dockerized environment
+
 Instead of manually running php, json_server and selenium for before tests you
 can use `docker-compose` to run those automatically.
 You can find `docker-compose.yml` file in `test` directory and run all commands
@@ -117,12 +119,14 @@ from this directory. Currently we provide following commands to run tests with
 respective dependencies:
 
 ### Run unit tests
-``` shell
+
+```sh
 docker-compose run --rm test-unit
 ```
 
 ### Run helper tests
-``` shell
+
+```sh
 docker-compose run --rm test-helpers
 
 # or pass path to helper test to run specific helper,
@@ -134,23 +138,53 @@ docker-compose run --rm test-helpers test/rest
 ```
 
 ### Run acceptance tests
-To that we provide two separate services respectively for WebDriverIO and
-Nightmare tests:
-``` shell
+
+To that we provide three separate services respectively for WebDriverIO, Nightmare and
+Puppeteer tests:
+
+```sh
 docker-compose run --rm test-acceptance.webdriverio
 docker-compose run --rm test-acceptance.nightmare
+docker-compose run --rm test-acceptance.puppeteer
 ```
 
 ### Running against specific Node version
-By default dockerized tests are run against node 6.9.5, you can run it against
+
+By default dockerized tests are run against node 8.9.1, you can run it against
 specific version as long as there is Docker container available for such
 version. To do that you need to build codecept's Docker image prior to running
 tests and pass `NODE_VERSION` as build argument.
 
-For example to prepare `test-helpers` containers based on node 8.7.0:
-``` shell
-docker-compose build --build-arg NODE_VERSION=8.7.0 test-helpers
+For example to prepare `test-helpers` containers based on node 9.4.0:
+
+```sh
+docker-compose build --build-arg NODE_VERSION=9.4.0 test-helpers
 ```
 
-And now every command based on `test-helpers` service will use node 8.7.0. The
+And now every command based on `test-helpers` service will use node 9.4.0. The
 same argument can be passed when building unit and acceptance tests services.
+
+## CI flow
+We're currently using bunch of CI services to build and test codecept in
+different environments. Here's short summary of what are differences between
+separate services
+
+### TravisCI
+Travis CI uses runs tests against Node 8 and Node 9. In total it uses 8 jobs to
+build each helper against both Node versions. For every job it runs unit tests
+first, then  `ApiDataFactory` and `REST` tests present in `test/rest` directory.
+Finally if those pass we run specific helper tests found in `test/helper`
+directory. It doesn't run acceptance tests.
+Config is present in `.travis.yml` file.
+
+### CircleCI
+Here we use CodeceptJS docker image to build and execute tests inside it. We
+start with building Docker container based on Dockerfile present in main project
+directory. Then we run (in this order) unit tests, all helpers present in
+`test/helpers`, then we go with `test/rest` directory and finally if everything
+passed so far it executes acceptance tests. For easier maintenance and local
+debugging CircleCI uses `docker-compose.yml` file from `test` directory.
+You can find Circle config in `.circleci` directory.
+
+### Semaphore
+Currently Semaphore runs only Appium helper tests.

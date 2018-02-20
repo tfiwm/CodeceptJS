@@ -5,18 +5,16 @@ module.exports.config = {
   timeout: 10000,
   output: './output',
   helpers: {
-    WebDriverIO: {
+    Puppeteer: {
       url: TestHelper.siteUrl(),
-      browser: 'chrome',
-      host: TestHelper.seleniumHost(),
-      port: TestHelper.seleniumPort(),
-      desiredCapabilities: {
-        chromeOptions: {
-          args: ['--headless', '--disable-gpu', '--window-size=1280,1024'],
-        },
+      show: false,
+      chrome: {
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+        ],
       },
     },
-
   },
   include: {},
   bootstrap: false,
